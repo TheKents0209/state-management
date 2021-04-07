@@ -2,14 +2,22 @@
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
+const passport = require('./utils/pass');
 
-//ÄLÄ TEE NÄIN PROJEKTISSA
+//älä tee näin projektissa
 
 const app = express();
 const port = 3000;
 
-const username = 'foo';
-const password = 'bar';
+const loggedIn = (req, res, next) => {
+  if (req.user) {
+    next();
+  } else {
+    res.redirect('/form');
+  }
+};
+
+//älä tee näin projektissa
 
 app.use(express.urlencoded({extended:false}));
 app.use(express.json());
@@ -20,6 +28,9 @@ app.use(session({
   resave: false,
   saveUninitialized: true
 }));
+
+app.use(passport.initialize());
+app.use(passport.session()); //älä tee näin projektissa
 
 app.set('views', './views');
 app.set('view engine', 'pug');
@@ -42,26 +53,17 @@ app.get('/form', (req, res) => {
   res.render('form');
 });
 
-app.get('/secret', (req, res) => {
-  if(req.session.logged) {
-    res.render('secret');
-  }else{
-    res.redirect('/form');
-  }
+//älä tee näin projektissa
 
-});
+app.post('/login',
+    passport.authenticate('local', {failureRedirect: '/form'}),
+    (req, res) => {
+      console.log('success');
+      res.redirect('/secret');
+    });
 
-//ÄLÄ TEE NÄIN PROJEKTISSA
-
-app.post('/login', (req, res) => {
-  const passwd = req.body.password;
-  const uname = req.body.username;
-  if(uname === username && passwd === password) {
-    req.session.logged = true;
-    res.redirect('/secret');
-  }else{
-    res.redirect('/form');
-  }
+app.get('/secret', loggedIn, (req, res) => {
+  res.render('secret');
 });
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`));
