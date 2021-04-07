@@ -66,4 +66,9 @@ app.get('/secret', loggedIn, (req, res) => {
   res.render('secret');
 });
 
+app.get('/logout', (req, res) => {
+  req.logout();
+  res.redirect('/');
+});
+
 app.listen(port, () => console.log(`Example app listening on port ${port}!`));
